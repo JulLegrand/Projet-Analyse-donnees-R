@@ -9,22 +9,41 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+# Project NYC Airbnb - Analyzing the Rental Market
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+Your data analyst team has been hired to study the Airbnb market in New York City. Using a public dataset, you must analyze price trends, the geographic distribution of listings, and the factors that influence rental prices. The project will culminate in the creation of a regression model to predict the price of a rental and an interactive map to visualize your findings.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+```{r, include=FALSE}
+dataset = read.csv("train.csv")
+library(lubridate)
+library(dplyr)
 ```
 
-## Including Plots
+Handling Temporal Data: The last_review column is in text format. Convert it to a proper date format using the lubridate package.
 
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r}
+head(dataset)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r}
+dataset$last_review = ymd(dataset$last_review)
+dataset
+```
+
+ Treating Informative NA s: The last_review and reviews_per_month columns have NA s for listings with no reviews. Replace the .NA s in 
+reviews_per_month with a proper number.
+
+```{r}
+dataset$reviews_per_month[is.na(dataset$reviews_per_month)] =0 
+head(dataset)
+```
+
+```{r}
+clean_dataset = dataset [dataset$price != 0,]
+clean_dataset
+```
+
+```{r}
+
+```
+
