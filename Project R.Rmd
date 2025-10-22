@@ -1,6 +1,6 @@
 ---
 title: "Project R"
-author: "Julien Legrand"
+author: "Legrand, Hu, Stintzi"
 date: "2025-10-22"
 output: html_document
 ---
@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 Your data analyst team has been hired to study the Airbnb market in New York City. Using a public dataset, you must analyze price trends, the geographic distribution of listings, and the factors that influence rental prices. The project will culminate in the creation of a regression model to predict the price of a rental and an interactive map to visualize your findings.
 
 ```{r, include=FALSE}
-dataset = read.csv("train.csv")
+train = read.csv("train.csv")
 library(lubridate)
 library(dplyr)
 ```
@@ -22,28 +22,31 @@ library(dplyr)
 Handling Temporal Data: The last_review column is in text format. Convert it to a proper date format using the lubridate package.
 
 ```{r}
-head(dataset)
+head(train)
 ```
 
 ```{r}
-dataset$last_review = ymd(dataset$last_review)
-dataset
+train$last_review = ymd(train$last_review)
+train
 ```
 
  Treating Informative NA s: The last_review and reviews_per_month columns have NA s for listings with no reviews. Replace the .NA s in 
 reviews_per_month with a proper number.
 
 ```{r}
-dataset$reviews_per_month[is.na(dataset$reviews_per_month)] =0 
-head(dataset)
+train$reviews_per_month[is.na(train$reviews_per_month)] = 0
+train
 ```
 
 ```{r}
-clean_dataset = dataset [dataset$price != 0,]
-clean_dataset
+CleanTrainPrice = train %>%
+  filter(price != 0)
+CleanTrainPrice
 ```
 
 ```{r}
-
+Clean_train = CleanTrainPrice %>%
+  select(-c(id, host_id, host_name))
+Clean_train
 ```
 
