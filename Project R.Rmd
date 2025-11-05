@@ -50,3 +50,45 @@ Clean_train = CleanTrainPrice %>%
 Clean_train
 ```
 
+## Step 2:
+
+```{r}
+Clean_train = Clean_train %>%
+  mutate(price_log = log1p(price))
+```
+
+
+Verify the difference between price and price_log
+
+```{r}
+summary(Clean_train$price)
+summary(Clean_train$price_log)
+```
+
+```{r}
+# Calcul de la date la plus récente dans le dataset
+max_date = max(Clean_train$last_review, na.rm = TRUE)
+
+# Création de la nouvelle colonne
+Clean_train = Clean_train %>%
+  mutate(days_since_last_review = as.numeric(difftime(max_date, last_review, units = "days")))
+
+# Vérification
+Clean_train
+```
+
+```{r}
+# Aperçu de la répartition des quartiers
+table(Clean_train$neighbourhood_group)
+
+# Et du nombre de quartiers détaillés
+length(unique(Clean_train$neighbourhood))
+```
+
+```{r}
+Clean_train$room_type = as.factor(Clean_train$room_type)
+
+str(Clean_train$room_type)
+levels(Clean_train$room_type)
+```
+
