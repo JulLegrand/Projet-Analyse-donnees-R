@@ -98,3 +98,42 @@ levels(Clean_train$room_type)
 library(leaflet)
 ```
 
+```{r}
+interactive_map = leaflet()
+interactive_map <- addTiles(interactive_map)
+
+interactive_map_color <- colorFactor(c("red", "blue", "yellow", "green", "purple"), domain = c("Bronx", "Brooklyn", "Manhattan", "Queens", "Staten Island"))
+
+interactive_map <- addProviderTiles(
+  map = interactive_map,
+  provider = providers$CartoDB.Positron
+)
+interactive_map <- addCircleMarkers(
+  map = interactive_map,
+  lng = Clean_train$longitude,
+  lat = Clean_train$latitude,
+  popup = Clean_train$name,
+  label = Clean_train$name,
+  color = interactive_map_color(Clean_train$neighbourhood_group),
+  fillColor = interactive_map_color(Clean_train$neighbourhood_group), 
+  fillOpacity = 0.8,
+  radius = Clean_train$price_log / 100
+)
+interactive_map <- addLegend(
+  map = interactive_map,
+  position = "topright",
+  pal = interactive_map_color,
+  values = c("Bronx", "Brooklyn", "Manhattan", "Queens", "Staten Island"), 
+  title = "Quartier",
+  opacity = 1
+  
+)
+
+
+```
+
+```{r}
+interactive_map
+```
+
+
