@@ -92,3 +92,9 @@ str(Clean_train$room_type)
 levels(Clean_train$room_type)
 ```
 
+## Step 3
+
+```{r}
+library(leaflet)
+```
+
