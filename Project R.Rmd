@@ -30,8 +30,7 @@ train$last_review = ymd(train$last_review)
 train
 ```
 
- Treating Informative NA s: The last_review and reviews_per_month columns have NA s for listings with no reviews. Replace the .NA s in 
-reviews_per_month with a proper number.
+Treating Informative NA s: The last_review and reviews_per_month columns have NA s for listings with no reviews. Replace the .NA s in reviews_per_month with a proper number.
 
 ```{r}
 train$reviews_per_month[is.na(train$reviews_per_month)] = 0
@@ -56,7 +55,6 @@ Clean_train
 Clean_train = Clean_train %>%
   mutate(price_log = log1p(price))
 ```
-
 
 Verify the difference between price and price_log
 
@@ -94,22 +92,27 @@ levels(Clean_train$room_type)
 
 ## Step 3
 
-```{r}
+```{r, include = FALSE}
 library(leaflet)
 library(ggplot2)
 library(forcats)
 ```
 
+### Creation of the interactive map
 ```{r}
-interactive_map = leaflet()
-interactive_map <- addTiles(interactive_map)
-
+#We instanciate color for the neighbourhood
 interactive_map_color <- colorFactor(c("red", "blue", "yellow", "green", "purple"), domain = c("Bronx", "Brooklyn", "Manhattan", "Queens", "Staten Island"))
 
+#We create the map
+interactive_map = leaflet()
+#We had the layer of the map
+interactive_map <- addTiles(interactive_map)
 interactive_map <- addProviderTiles(
   map = interactive_map,
   provider = providers$CartoDB.Positron
 )
+
+#We add the markers for every AirBNB
 interactive_map <- addCircleMarkers(
   map = interactive_map,
   lng = Clean_train$longitude,
@@ -121,12 +124,14 @@ interactive_map <- addCircleMarkers(
   fillOpacity = 0.8,
   radius = Clean_train$price_log / 100
 )
+
+#We instanciate the legend
 interactive_map <- addLegend(
   map = interactive_map,
   position = "topright",
   pal = interactive_map_color,
   values = c("Bronx", "Brooklyn", "Manhattan", "Queens", "Staten Island"), 
-  title = "Quartier",
+  title = "Neighbourhood",
   opacity = 1
   
 )
@@ -137,20 +142,24 @@ interactive_map <- addLegend(
 ```{r}
 interactive_map
 ```
+Because there's more than 44.000 AirBnB in New York City, the map lag in the area.
 
 
+### Price distribution by borought
 ```{r}
+#We calculate the mean price for every neighbourhood
 Mean_neighbourhood = Clean_train %>%
   group_by(neighbourhood) %>%
   summarise(Mean_price = mean(price_log, na.rm = TRUE))
 
-#Add the neighbourhood group in the dataset
+#We add the neighbourhood_group in the new dataset
 neighbourhood_group_reference <- Clean_train %>%
   select(neighbourhood, neighbourhood_group) %>%
   distinct()
 Mean_complete_neighbourhood <- Mean_neighbourhood %>%
   left_join(neighbourhood_group_reference, by = "neighbourhood")
 
+#We plot the result
 plot_distribution_box = ggplot(Mean_complete_neighbourhood) + 
   aes(x = neighbourhood_group, y = Mean_price, colour = neighbourhood_group) + 
   geom_jitter(size = 1.5, alpha = 1, aes(colour = neighbourhood_group), fill = NA) + 
@@ -158,16 +167,68 @@ plot_distribution_box = ggplot(Mean_complete_neighbourhood) +
   labs(title = "Mean prices of the differents neighbourhood", x="neighbourhood", y = "Mean prices") + 
   theme_minimal() + 
   theme(legend.position = "none", plot.title = element_text(hjust = 0.5, face = "bold"), axis.title = element_text(size = 10)) 
-Mean_complete_neighbourhood
+
 plot_distribution_box
 ```
+On this graphic, the points are the mean price of each neighbourhood. The boxplots are the price mean of every neighbourhood_group, based on the price mean of the neighbourhood
 
+### Distribution of listing type
 ```{r}
+#We take the sum of listing for each Room type
 Number_of_listing = Clean_train %>%
   group_by(room_type) %>%
   summarise(nmb_listing = sum(calculated_host_listings_count))
 
-ggplot(Number_of_listing, aes(x=room_type, y=nmb_listing, color=room_type, fill= room_type))+geom_col()+labs(title= "Number of listing per room type", x= "Room type", y= "Number of listing")
+#We plot the results
+ggplot(Number_of_listing, aes(x=room_type, y=nmb_listing, color=room_type, fill= room_type))+geom_col()+labs(title= "Number of listing per room type", x= "Room type", y= "Number of listing") + theme(legend.position = "none", plot.title = element_text(hjust = 0.5, face = "bold"), axis.title = element_text(size = 10))
+
+```
+As we can see, most of the AirBnB booked are the entire Home / apartment. This is quite logical because it's what AirBnB push on
+
+### Relationship between availability and Reviews
+```{r}
+#We plot the relationship
+ggplot(Clean_train, aes(x=availability_365, y = number_of_reviews, color=neighbourhood_group)) + geom_point() + theme_minimal() + labs(x="Availability on 365 days", y = "Number of Reviews", title = "Number of reviews correlated to the availability") + theme(plot.title = element_text(hjust = 0.5, face = "bold"), axis.title = element_text(size = 10))
+```
+As we can see, there's too much element to be clear. We will now separate by neighbourhood
+```{r}
+#We plot the results
+
+#For Bronx
+ggplot(Clean_train[Clean_train$neighbourhood_group == "Bronx",], aes(x=availability_365, y = number_of_reviews)) + geom_point( color="red", size= 0.75) + theme_minimal() + labs(x="Availability on 365 days", y = "Number of Reviews", title = "Number of reviews correlated to the availability in Bronx") + theme(plot.title = element_text(hjust = 0.5, face = "bold"), axis.title = element_text(size = 10)) + coord_cartesian(ylim = c(0, 450))
+
+#For Brooklyn
+ggplot(Clean_train[Clean_train$neighbourhood_group == "Brooklyn",], aes(x=availability_365, y = number_of_reviews)) + geom_point(color="yellow3", size= 0.75) + theme_minimal() + labs(x="Availability on 365 days", y = "Number of Reviews", title = "Number of reviews correlated to the availability in Brooklyn") + theme(plot.title = element_text(hjust = 0.5, face = "bold"), axis.title = element_text(size = 10)) + coord_cartesian(ylim = c(0, 450))
+
+#For Manhattan
+ggplot(Clean_train[Clean_train$neighbourhood_group == "Manhattan",], aes(x=availability_365, y = number_of_reviews)) + geom_point( color="green", size= 0.75) + theme_minimal() + labs(x="Availability on 365 days", y = "Number of Reviews", title = "Number of reviews correlated to the availability in Manhattan") + theme(plot.title = element_text(hjust = 0.5, face = "bold"), axis.title = element_text(size = 10)) + coord_cartesian(ylim = c(0, 450))
+
+#For Queens
+ggplot(Clean_train[Clean_train$neighbourhood_group == "Queens",], aes(x=availability_365, y = number_of_reviews)) + geom_point(color="blue", size= 0.75) + theme_minimal() + labs(x="Availability on 365 days", y = "Number of Reviews", title = "Number of reviews correlated to the availability in Queens") + theme(plot.title = element_text(hjust = 0.5, face = "bold"), axis.title = element_text(size = 10)) + coord_cartesian(ylim = c(0, 450))
+
+#For Staten Island
+ggplot(Clean_train[Clean_train$neighbourhood_group == "Staten Island",], aes(x=availability_365, y = number_of_reviews)) + geom_point(color="purple", size= 0.75) + theme_minimal() + labs(x="Availability on 365 days", y = "Number of Reviews", title = "Number of reviews correlated to the availability in Staten Island") + theme(plot.title = element_text(hjust = 0.5, face = "bold"), axis.title = element_text(size = 10)) + coord_cartesian(ylim = c(0, 450))
+```
+Now we can see it much better, but on some neighbourhood, it's still not enough.
+This relationship is not very relevant (A voir si on mets ca)
+
+### Comparaison entre price et minimum night
+
+```{r}
+ggplot(Clean_train, aes(x = minimum_nights, y = price, color = "red")) + geom_point() + theme_minimal() + labs(x = "Number of nights required", y = "Price of the AirBnB", title = "The relationship between the price and the number of nights") + theme(legend.position = "none",plot.title = element_text(hjust = 0.5, face = "bold"), axis.title = element_text(size = 10)) 
+
+```
+As we can see, some AirBnB asks for too much nights, which makes it not interesting (and not possible). If we were staff members form AirBnB, we would have looked at them in order to be sure everything is alright with theses announcement.
+We will now look much closer on those who requires less than a year of minimum nights, in order to have a better view of them.
+
+```{r}
+ggplot(Clean_train, aes(x = minimum_nights, y = price, color = "red")) + geom_point(size = 0.5) + theme_minimal() + labs(x = "Number of nights required", y = "Price of the AirBnB", title = "The relationship between the price and the number of nights") + theme(legend.position = "none", plot.title = element_text(hjust = 0.5, face = "bold"), axis.title = element_text(size = 10)) + coord_cartesian(xlim = c(0, 365))
 ```
 
+And now, the relationships for the flats that requires less than 100 days in it :
 
+```{r}
+ggplot(Clean_train, aes(x = minimum_nights, y = price, color = "red")) + geom_point(size = 0.5) + theme_minimal() + labs(x = "Number of nights required", y = "Price of the AirBnB", title = "The relationship between the price and the number of nights") + theme(legend.position = "none", plot.title = element_text(hjust = 0.5, face = "bold"), axis.title = element_text(size = 10)) + coord_cartesian(xlim = c(0, 100), ylim = c(0,6000))
+```
+
+### Correlation between 
