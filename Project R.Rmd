@@ -96,6 +96,8 @@ levels(Clean_train$room_type)
 
 ```{r}
 library(leaflet)
+library(ggplot2)
+library(forcats)
 ```
 
 ```{r}
@@ -134,6 +136,38 @@ interactive_map <- addLegend(
 
 ```{r}
 interactive_map
+```
+
+
+```{r}
+Mean_neighbourhood = Clean_train %>%
+  group_by(neighbourhood) %>%
+  summarise(Mean_price = mean(price_log, na.rm = TRUE))
+
+#Add the neighbourhood group in the dataset
+neighbourhood_group_reference <- Clean_train %>%
+  select(neighbourhood, neighbourhood_group) %>%
+  distinct()
+Mean_complete_neighbourhood <- Mean_neighbourhood %>%
+  left_join(neighbourhood_group_reference, by = "neighbourhood")
+
+plot_distribution_box = ggplot(Mean_complete_neighbourhood) + 
+  aes(x = neighbourhood_group, y = Mean_price, colour = neighbourhood_group) + 
+  geom_jitter(size = 1.5, alpha = 1, aes(colour = neighbourhood_group), fill = NA) + 
+  geom_boxplot(colour = "gray60", size=1, alpha = 0.5) + 
+  labs(title = "Mean prices of the differents neighbourhood", x="neighbourhood", y = "Mean prices") + 
+  theme_minimal() + 
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5, face = "bold"), axis.title = element_text(size = 10)) 
+Mean_complete_neighbourhood
+plot_distribution_box
+```
+
+```{r}
+Number_of_listing = Clean_train %>%
+  group_by(room_type) %>%
+  summarise(nmb_listing = sum(calculated_host_listings_count))
+
+ggplot(Number_of_listing, aes(x=room_type, y=nmb_listing, color=room_type, fill= room_type))+geom_col()+labs(title= "Number of listing per room type", x= "Room type", y= "Number of listing")
 ```
 
 
