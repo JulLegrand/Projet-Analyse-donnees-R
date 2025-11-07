@@ -215,6 +215,7 @@ This relationship is not very relevant (A voir si on mets ca)
 ### Comparaison entre price et minimum night
 
 ```{r}
+#We plot the results
 ggplot(Clean_train, aes(x = minimum_nights, y = price, color = "red")) + geom_point() + theme_minimal() + labs(x = "Number of nights required", y = "Price of the AirBnB", title = "The relationship between the price and the number of nights") + theme(legend.position = "none",plot.title = element_text(hjust = 0.5, face = "bold"), axis.title = element_text(size = 10)) 
 
 ```
@@ -222,13 +223,21 @@ As we can see, some AirBnB asks for too much nights, which makes it not interest
 We will now look much closer on those who requires less than a year of minimum nights, in order to have a better view of them.
 
 ```{r}
+#We plot the results
 ggplot(Clean_train, aes(x = minimum_nights, y = price, color = "red")) + geom_point(size = 0.5) + theme_minimal() + labs(x = "Number of nights required", y = "Price of the AirBnB", title = "The relationship between the price and the number of nights") + theme(legend.position = "none", plot.title = element_text(hjust = 0.5, face = "bold"), axis.title = element_text(size = 10)) + coord_cartesian(xlim = c(0, 365))
 ```
 
 And now, the relationships for the flats that requires less than 100 days in it :
 
 ```{r}
+#We plot the result
 ggplot(Clean_train, aes(x = minimum_nights, y = price, color = "red")) + geom_point(size = 0.5) + theme_minimal() + labs(x = "Number of nights required", y = "Price of the AirBnB", title = "The relationship between the price and the number of nights") + theme(legend.position = "none", plot.title = element_text(hjust = 0.5, face = "bold"), axis.title = element_text(size = 10)) + coord_cartesian(xlim = c(0, 100), ylim = c(0,6000))
 ```
 
-### Correlation between 
+### Correlation between the number of review and the price of AirBnB
+
+```{r}
+#We plot the results
+ggplot(Clean_train, aes(x = number_of_reviews, y = price, color = "red")) + geom_point() + theme_minimal() + labs(x = "Number of reviews", y = "Price of the AirBnB", title = "The relationship between the price and the number of reviews") + theme(legend.position = "none",plot.title = element_text(hjust = 0.5, face = "bold"), axis.title = element_text(size = 10)) 
+```
+As we can see, the less the price is, the more reviews there is. Cheap AirBnB are more attractive.
