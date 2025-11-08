@@ -99,6 +99,7 @@ library(forcats)
 ```
 
 ### Creation of the interactive map
+
 ```{r}
 #We instanciate color for the neighbourhood
 interactive_map_color <- colorFactor(c("red", "blue", "yellow", "green", "purple"), domain = c("Bronx", "Brooklyn", "Manhattan", "Queens", "Staten Island"))
@@ -142,10 +143,11 @@ interactive_map <- addLegend(
 ```{r}
 interactive_map
 ```
+
 Because there's more than 44.000 AirBnB in New York City, the map lag in the area.
 
-
 ### Price distribution by borought
+
 ```{r}
 #We calculate the mean price for every neighbourhood
 Mean_neighbourhood = Clean_train %>%
@@ -170,9 +172,11 @@ plot_distribution_box = ggplot(Mean_complete_neighbourhood) +
 
 plot_distribution_box
 ```
+
 On this graphic, the points are the mean price of each neighbourhood. The boxplots are the price mean of every neighbourhood_group, based on the price mean of the neighbourhood
 
 ### Distribution of listing type
+
 ```{r}
 #We take the sum of listing for each Room type
 Number_of_listing = Clean_train %>%
@@ -183,14 +187,18 @@ Number_of_listing = Clean_train %>%
 ggplot(Number_of_listing, aes(x=room_type, y=nmb_listing, color=room_type, fill= room_type))+geom_col()+labs(title= "Number of listing per room type", x= "Room type", y= "Number of listing") + theme(legend.position = "none", plot.title = element_text(hjust = 0.5, face = "bold"), axis.title = element_text(size = 10))
 
 ```
+
 As we can see, most of the AirBnB booked are the entire Home / apartment. This is quite logical because it's what AirBnB push on
 
 ### Relationship between availability and Reviews
+
 ```{r}
 #We plot the relationship
 ggplot(Clean_train, aes(x=availability_365, y = number_of_reviews, color=neighbourhood_group)) + geom_point() + theme_minimal() + labs(x="Availability on 365 days", y = "Number of Reviews", title = "Number of reviews correlated to the availability") + theme(plot.title = element_text(hjust = 0.5, face = "bold"), axis.title = element_text(size = 10))
 ```
+
 As we can see, there's too much element to be clear. We will now separate by neighbourhood
+
 ```{r}
 #We plot the results
 
@@ -209,6 +217,7 @@ ggplot(Clean_train[Clean_train$neighbourhood_group == "Queens",], aes(x=availabi
 #For Staten Island
 ggplot(Clean_train[Clean_train$neighbourhood_group == "Staten Island",], aes(x=availability_365, y = number_of_reviews)) + geom_point(color="purple", size= 0.75) + theme_minimal() + labs(x="Availability on 365 days", y = "Number of Reviews", title = "Number of reviews correlated to the availability in Staten Island") + theme(plot.title = element_text(hjust = 0.5, face = "bold"), axis.title = element_text(size = 10)) + coord_cartesian(ylim = c(0, 450))
 ```
+
 As we can see, it's still not enough to have a good view on all the data we want, especially in Brooklyn, Manhattan and Queens. So we will cut the graphs in 2, in order to make it easier to read.
 
 ```{r }
@@ -256,8 +265,8 @@ Now, the graphs looks much easier to understand.
 ggplot(Clean_train, aes(x = minimum_nights, y = price, color = "red")) + geom_point() + theme_minimal() + labs(x = "Number of nights required", y = "Price of the AirBnB", title = "The relationship between the price and the number of nights") + theme(legend.position = "none",plot.title = element_text(hjust = 0.5, face = "bold"), axis.title = element_text(size = 10)) 
 
 ```
-As we can see, some AirBnB asks for too much nights, which makes it not interesting (and not possible). If we were staff members form AirBnB, we would have looked at them in order to be sure everything is alright with theses announcement.
-We will now look much closer on those who requires less than a year of minimum nights, in order to have a better view of them.
+
+As we can see, some AirBnB asks for too much nights, which makes it not interesting (and not possible). If we were staff members form AirBnB, we would have looked at them in order to be sure everything is alright with theses announcement. We will now look much closer on those who requires less than a year of minimum nights, in order to have a better view of them.
 
 ```{r}
 #We plot the results
@@ -277,4 +286,55 @@ ggplot(Clean_train, aes(x = minimum_nights, y = price, color = "red")) + geom_po
 #We plot the results
 ggplot(Clean_train, aes(x = number_of_reviews, y = price, color = "red")) + geom_point() + theme_minimal() + labs(x = "Number of reviews", y = "Price of the AirBnB", title = "The relationship between the price and the number of reviews") + theme(legend.position = "none",plot.title = element_text(hjust = 0.5, face = "bold"), axis.title = element_text(size = 10)) 
 ```
+
 As we can see, the less the price is, the more reviews there is. Cheap AirBnB are more attractive.
+
+step 4:
+
+```{r}
+# Modèle linéaire
+lm_model = lm(log1p(price) ~ neighbourhood_group + room_type + number_of_reviews, data = Clean_train)
+
+summary(lm_model)
+```
+
+```{r, include = FALSE}
+library(rpart)
+library(rpart.plot)
+```
+
+```{r}
+tree_model <- rpart(price_log ~ neighbourhood_group + room_type + number_of_reviews, data = Clean_train, method = "anova")
+
+rpart.plot(tree_model)
+```
+
+Now we see that 31% of people take shared or private room that cost 66\$ and 17% for 89\$ And 25% of people take home or apartment for 147\$ and 27% of them take it for 200\$
+
+```{r}
+# Prédictions
+lm_pred <- predict(lm_model, Clean_train)
+tree_pred <- predict(tree_model, Clean_train)
+
+# Retour à l’échelle originale
+lm_pred_exp <- expm1(lm_pred)
+tree_pred_exp <- expm1(tree_pred)
+
+# Calcul RMSE
+lm_rmse <- sqrt(mean((Clean_train$price - lm_pred_exp)^2))
+tree_rmse <- sqrt(mean((Clean_train$price - tree_pred_exp)^2))
+
+lm_rmse
+tree_rmse
+```
+
+Both models have an average error of about $230, which is reasonable given the high variability of Airbnb prices in New York.
+
+
+Interpretation:
+
+The model shows that Airbnb prices in New York City vary significantly depending on the neighborhood and type of accommodation.
+Locations in Manhattan and Brooklyn are, on average, much more expensive than those in the Bronx.
+Conversely, "Private Rooms" and "Shared Rooms" are considerably cheaper than "Entire Homes."
+The number of reviews has a slight negative effect on price, suggesting that older or more popular listings tend to be slightly less expensive.
+Overall, these variables explain approximately 45% of the log-transformed price variation, making this a simple yet relevant model for an initial analysis of pricing factors.
