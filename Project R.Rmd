@@ -201,7 +201,7 @@ ggplot(Clean_train[Clean_train$neighbourhood_group == "Bronx",], aes(x=availabil
 ggplot(Clean_train[Clean_train$neighbourhood_group == "Brooklyn",], aes(x=availability_365, y = number_of_reviews)) + geom_point(color="yellow3", size= 0.75) + theme_minimal() + labs(x="Availability on 365 days", y = "Number of Reviews", title = "Number of reviews correlated to the availability in Brooklyn") + theme(plot.title = element_text(hjust = 0.5, face = "bold"), axis.title = element_text(size = 10)) + coord_cartesian(ylim = c(0, 450))
 
 #For Manhattan
-ggplot(Clean_train[Clean_train$neighbourhood_group == "Manhattan",], aes(x=availability_365, y = number_of_reviews)) + geom_point( color="green", size= 0.75) + theme_minimal() + labs(x="Availability on 365 days", y = "Number of Reviews", title = "Number of reviews correlated to the availability in Manhattan") + theme(plot.title = element_text(hjust = 0.5, face = "bold"), axis.title = element_text(size = 10)) + coord_cartesian(ylim = c(0, 450))
+ggplot(Clean_train[Clean_train$neighbourhood_group == "Manhattan",], aes(x=availability_365, y = number_of_reviews)) + geom_point( color="green3", size= 0.75, alpha = 0.1) + theme_minimal() + labs(x="Availability on 365 days", y = "Number of Reviews", title = "Number of reviews correlated to the availability in Manhattan") + theme(plot.title = element_text(hjust = 0.5, face = "bold"), axis.title = element_text(size = 10)) + coord_cartesian(ylim = c(0, 450))
 
 #For Queens
 ggplot(Clean_train[Clean_train$neighbourhood_group == "Queens",], aes(x=availability_365, y = number_of_reviews)) + geom_point(color="blue", size= 0.75) + theme_minimal() + labs(x="Availability on 365 days", y = "Number of Reviews", title = "Number of reviews correlated to the availability in Queens") + theme(plot.title = element_text(hjust = 0.5, face = "bold"), axis.title = element_text(size = 10)) + coord_cartesian(ylim = c(0, 450))
@@ -209,8 +209,45 @@ ggplot(Clean_train[Clean_train$neighbourhood_group == "Queens",], aes(x=availabi
 #For Staten Island
 ggplot(Clean_train[Clean_train$neighbourhood_group == "Staten Island",], aes(x=availability_365, y = number_of_reviews)) + geom_point(color="purple", size= 0.75) + theme_minimal() + labs(x="Availability on 365 days", y = "Number of Reviews", title = "Number of reviews correlated to the availability in Staten Island") + theme(plot.title = element_text(hjust = 0.5, face = "bold"), axis.title = element_text(size = 10)) + coord_cartesian(ylim = c(0, 450))
 ```
-Now we can see it much better, but on some neighbourhood, it's still not enough.
-This relationship is not very relevant (A voir si on mets ca)
+As we can see, it's still not enough to have a good view on all the data we want, especially in Brooklyn, Manhattan and Queens. So we will cut the graphs in 2, in order to make it easier to read.
+
+```{r }
+#For Bronx
+ggplot(Clean_train[Clean_train$neighbourhood_group == "Bronx",], aes(x=availability_365, y = number_of_reviews)) + geom_point( color="red", size= 0.75) + theme_minimal() + labs(x="Availability", y = "Number of Reviews", title = "Number of reviews correlated to the availability in Bronx for availability between 0 to 190 days") + theme(plot.title = element_text(hjust = 0.5, face = "bold"), axis.title = element_text(size = 10)) + coord_cartesian(xlim = c(0,190), ylim = c(0, 350))
+
+
+ggplot(Clean_train[Clean_train$neighbourhood_group == "Bronx",], aes(x=availability_365, y = number_of_reviews)) + geom_point( color="red", size= 0.75) + theme_minimal() + labs(x="Availability", y = "Number of Reviews", title = "Number of reviews correlated to the availability in Bronx for availability between 190 and 380 days") + theme(plot.title = element_text(hjust = 0.5, face = "bold"), axis.title = element_text(size = 10)) + coord_cartesian(xlim = c(190,380), ylim = c(0, 350))
+```
+```{r}
+#For Brooklyn
+ggplot(Clean_train[Clean_train$neighbourhood_group == "Brooklyn",], aes(x=availability_365, y = number_of_reviews)) + geom_point(color="yellow3", size= 0.75) + theme_minimal() + labs(x="Availability", y = "Number of Reviews", title = "Number of reviews correlated to the availability in Brooklyn for availability between 0 and 190 days") + theme(plot.title = element_text(hjust = 0.5, face = "bold"), axis.title = element_text(size = 10)) + coord_cartesian(xlim = c(0,190),ylim = c(0, 450))
+
+ggplot(Clean_train[Clean_train$neighbourhood_group == "Brooklyn",], aes(x=availability_365, y = number_of_reviews)) + geom_point(color="yellow3", size= 0.75) + theme_minimal() + labs(x="Availability", y = "Number of Reviews", title = "Number of reviews correlated to the availability in Brooklyn for availability between 190 and 380 days") + theme(plot.title = element_text(hjust = 0.5, face = "bold"), axis.title = element_text(size = 10)) + coord_cartesian(xlim = c(190,380), ylim = c(0, 450))
+```
+
+```{r}
+#For Manhattan
+ggplot(Clean_train[Clean_train$neighbourhood_group == "Manhattan",], aes(x=availability_365, y = number_of_reviews)) + geom_point( color="green3", size= 0.75, alpha = 1) + theme_minimal() + labs(x="Availability", y = "Number of Reviews", title = "Number of reviews correlated to the availability in Manhattan for availability between 0 and 190 days") + theme(plot.title = element_text(hjust = 0.5, face = "bold"), axis.title = element_text(size = 10)) + coord_cartesian(xlim = c(0,190),ylim = c(0, 300))
+
+ggplot(Clean_train[Clean_train$neighbourhood_group == "Manhattan",], aes(x=availability_365, y = number_of_reviews)) + geom_point( color="green3", size= 0.75, alpha = 1) + theme_minimal() + labs(x="Availability", y = "Number of Reviews", title = "Number of reviews correlated to the availability in Manhattan for availability between 190 and 380 days") + theme(plot.title = element_text(hjust = 0.5, face = "bold"), axis.title = element_text(size = 10)) + coord_cartesian(xlim = c(190,380), ylim = c(0, 300))
+```
+
+```{r}
+#For Queens
+ggplot(Clean_train[Clean_train$neighbourhood_group == "Queens",], aes(x=availability_365, y = number_of_reviews)) + geom_point(color="blue", size= 0.75) + theme_minimal() + labs(x="Availability", y = "Number of Reviews", title = "Number of reviews correlated to the availability in Queens for availability between 0 and 190 days") + theme(plot.title = element_text(hjust = 0.5, face = "bold"), axis.title = element_text(size = 10)) + coord_cartesian(xlim = c(0,190), ylim = c(0, 450))
+
+ggplot(Clean_train[Clean_train$neighbourhood_group == "Queens",], aes(x=availability_365, y = number_of_reviews)) + geom_point(color="blue", size= 0.75) + theme_minimal() + labs(x="Availability", y = "Number of Reviews", title = "Number of reviews correlated to the availability in Queens for availability between 0 and 190 days") + theme(plot.title = element_text(hjust = 0.5, face = "bold"), axis.title = element_text(size = 10)) + coord_cartesian(xlim = c(190,380), ylim = c(0, 450))
+```
+
+```{r}
+#For Staten Island
+ggplot(Clean_train[Clean_train$neighbourhood_group == "Staten Island",], aes(x=availability_365, y = number_of_reviews)) + geom_point(color="purple", size= 0.75) + theme_minimal() + labs(x="Availability", y = "Number of Reviews", title = "Number of reviews correlated to the availability in Staten Island for availability between 0 and 190 days") + theme(plot.title = element_text(hjust = 0.5, face = "bold"), axis.title = element_text(size = 10)) + coord_cartesian(xlim = c(0,190), ylim = c(0, 450))
+
+ggplot(Clean_train[Clean_train$neighbourhood_group == "Staten Island",], aes(x=availability_365, y = number_of_reviews)) + geom_point(color="purple", size= 0.75) + theme_minimal() + labs(x="Availability", y = "Number of Reviews", title = "Number of reviews correlated to the availability in Staten Island for availability between 190 and 380 days") + theme(plot.title = element_text(hjust = 0.5, face = "bold"), axis.title = element_text(size = 10)) + coord_cartesian(xlim = c(190, 380), ylim = c(0, 450))
+```
+
+Now, the graphs looks much easier to understand.
+
 
 ### Comparaison entre price et minimum night
 
