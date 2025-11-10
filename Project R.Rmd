@@ -2,54 +2,74 @@
 title: "Project R"
 author: "Legrand, Hu, Stintzi"
 date: "2025-10-22"
-output: html_document
+output:
+  html_document:
+    css: ProjetR.css
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 ```
 
 # Project NYC Airbnb - Analyzing the Rental Market
 
+### Projet Goal :
+
 Your data analyst team has been hired to study the Airbnb market in New York City. Using a public dataset, you must analyze price trends, the geographic distribution of listings, and the factors that influence rental prices. The project will culminate in the creation of a regression model to predict the price of a rental and an interactive map to visualize your findings.
+
+## Step 1 : Data Cleaning and Preparation
+
+-   Handling Temporal Data: The column last_review has been converted to date format in order to be able to perform temporal analyses.
+
+-   Treating Informative NAs: The missing values in reviews_per_month have been replaced with 0, as they correspond to homes without reviews.
+
+-   Cleaning the Price Column: Ads with a price equal to 0 have been removed, because they are not realistic.
+
+-   Removing Irrelevant Columns: The id, host_id and host_name columns have been removed because they are not useful for general analysis.
 
 ```{r, include=FALSE}
 train = read.csv("train.csv")
 library(lubridate)
 library(dplyr)
+library(knitr)
 ```
 
 Handling Temporal Data: The last_review column is in text format. Convert it to a proper date format using the lubridate package.
 
-```{r}
-head(train)
-```
-
-```{r}
+```{r, include=FALSE}
 train$last_review = ymd(train$last_review)
 train
 ```
 
 Treating Informative NA s: The last_review and reviews_per_month columns have NA s for listings with no reviews. Replace the .NA s in reviews_per_month with a proper number.
 
-```{r}
+```{r, include=FALSE}
 train$reviews_per_month[is.na(train$reviews_per_month)] = 0
 train
 ```
 
-```{r}
+```{r, include=FALSE}
 CleanTrainPrice = train %>%
   filter(price != 0)
 CleanTrainPrice
 ```
 
-```{r}
+```{r, include=FALSE}
 Clean_train = CleanTrainPrice %>%
   select(-c(id, host_id, host_name))
 Clean_train
 ```
 
-## Step 2:
+```{r}
+kable(head(Clean_train), caption = "Aperçu du jeu de données nettoyé")
+```
+
+
+## Step 2 : Feature Transformation and Engineering
+
+### Logarithmic Price Transformation
+
+-   The variable price was transformed into price_log using a logarithmic transformation
 
 ```{r}
 Clean_train = Clean_train %>%
@@ -63,7 +83,11 @@ summary(Clean_train$price)
 summary(Clean_train$price_log)
 ```
 
-```{r}
+### Creating a Recency Feature
+
+-   A new variable days_since_last_review has been created to know how many days have passed since the last review
+
+```{r, include=FALSE}
 # Calcul de la date la plus récente dans le dataset
 max_date = max(Clean_train$last_review, na.rm = TRUE)
 
@@ -75,6 +99,10 @@ Clean_train = Clean_train %>%
 Clean_train
 ```
 
+### Simplifying Neighborhoods
+
+-   The neighborhood analysis was checked to identify the most suitable column for visualizations.
+
 ```{r}
 # Aperçu de la répartition des quartiers
 table(Clean_train$neighbourhood_group)
@@ -83,6 +111,10 @@ table(Clean_train$neighbourhood_group)
 length(unique(Clean_train$neighbourhood))
 ```
 
+### Encoding Room Types
+
+-   The room_type variable has been converted into a factor so that it is recognized as a categorical variable by R.
+
 ```{r}
 Clean_train$room_type = as.factor(Clean_train$room_type)
 
@@ -90,7 +122,7 @@ str(Clean_train$room_type)
 levels(Clean_train$room_type)
 ```
 
-## Step 3
+## Step 3 : Visualization and Exploration
 
 ```{r, include = FALSE}
 library(leaflet)
@@ -99,6 +131,8 @@ library(forcats)
 ```
 
 ### Creation of the interactive map
+
+-   
 
 ```{r}
 #We instanciate color for the neighbourhood
@@ -148,6 +182,8 @@ Because there's more than 44.000 AirBnB in New York City, the map lag in the are
 
 ### Price distribution by borought
 
+-   The distribution of prices (on the logarithmic scale) was compared between the different neighborhoods to visualize cost differences.
+
 ```{r}
 #We calculate the mean price for every neighbourhood
 Mean_neighbourhood = Clean_train %>%
@@ -177,6 +213,8 @@ On this graphic, the points are the mean price of each neighbourhood. The boxplo
 
 ### Distribution of listing type
 
+-   Distribution of Listing Types: A graph shows the number of dwellings by room type (room_type), revealing that the majority of rentals are apartments or entire houses.
+
 ```{r}
 #We take the sum of listing for each Room type
 Number_of_listing = Clean_train %>%
@@ -191,6 +229,8 @@ ggplot(Number_of_listing, aes(x=room_type, y=nmb_listing, color=room_type, fill=
 As we can see, most of the AirBnB booked are the entire Home / apartment. This is quite logical because it's what AirBnB push on
 
 ### Relationship between availability and Reviews
+
+-   Graphs explore the relationship between availability (availability_365) and number of reviews (number_of_reviews) for each borough, facilitating the identification of trends.
 
 ```{r}
 #We plot the relationship
@@ -227,6 +267,7 @@ ggplot(Clean_train[Clean_train$neighbourhood_group == "Bronx",], aes(x=availabil
 
 ggplot(Clean_train[Clean_train$neighbourhood_group == "Bronx",], aes(x=availability_365, y = number_of_reviews)) + geom_point( color="red", size= 0.75) + theme_minimal() + labs(x="Availability", y = "Number of Reviews", title = "Number of reviews correlated to the availability in Bronx for availability between 190 and 380 days") + theme(plot.title = element_text(hjust = 0.5, face = "bold"), axis.title = element_text(size = 10)) + coord_cartesian(xlim = c(190,380), ylim = c(0, 350))
 ```
+
 ```{r}
 #For Brooklyn
 ggplot(Clean_train[Clean_train$neighbourhood_group == "Brooklyn",], aes(x=availability_365, y = number_of_reviews)) + geom_point(color="yellow3", size= 0.75) + theme_minimal() + labs(x="Availability", y = "Number of Reviews", title = "Number of reviews correlated to the availability in Brooklyn for availability between 0 and 190 days") + theme(plot.title = element_text(hjust = 0.5, face = "bold"), axis.title = element_text(size = 10)) + coord_cartesian(xlim = c(0,190),ylim = c(0, 450))
@@ -257,8 +298,9 @@ ggplot(Clean_train[Clean_train$neighbourhood_group == "Staten Island",], aes(x=a
 
 Now, the graphs looks much easier to understand.
 
-
 ### Comparaison entre price et minimum night
+
+-   Additional charts analyze the relationship between price and minimum nights, as well as price and number of reviews, to better understand the Airbnb market.
 
 ```{r}
 #We plot the results
@@ -289,7 +331,11 @@ ggplot(Clean_train, aes(x = number_of_reviews, y = price, color = "red")) + geom
 
 As we can see, the less the price is, the more reviews there is. Cheap AirBnB are more attractive.
 
-step 4:
+## Step 4 : Modeling and Prediction (Data Science)
+
+### Linear Regression Model
+
+-   A linear regression model was trained to predict the price (log-transformed) as a function of neighborhood (neighbourhood_group), room type (room_type) and number of reviews (number_of_reviews).
 
 ```{r}
 # Modèle linéaire
@@ -297,6 +343,10 @@ lm_model = lm(log1p(price) ~ neighbourhood_group + room_type + number_of_reviews
 
 summary(lm_model)
 ```
+
+### Decision Tree Model
+
+-   A regression tree was built using rpart to visualize how decisions on price are structured.
 
 ```{r, include = FALSE}
 library(rpart)
@@ -310,6 +360,10 @@ rpart.plot(tree_model)
 ```
 
 Now we see that 31% of people take shared or private room that cost 66\$ and 17% for 89\$ And 25% of people take home or apartment for 147\$ and 27% of them take it for 200\$
+
+### Model Evaluation
+
+-   Predictions were transformed back to the original scale and RMSE was calculated to evaluate model accuracy.
 
 ```{r}
 # Prédictions
@@ -328,13 +382,8 @@ lm_rmse
 tree_rmse
 ```
 
-Both models have an average error of about $230, which is reasonable given the high variability of Airbnb prices in New York.
+Both models have an average error of about \$230, which is reasonable given the high variability of Airbnb prices in New York.
 
+### Interpretation
 
-Interpretation:
-
-The model shows that Airbnb prices in New York City vary significantly depending on the neighborhood and type of accommodation.
-Locations in Manhattan and Brooklyn are, on average, much more expensive than those in the Bronx.
-Conversely, "Private Rooms" and "Shared Rooms" are considerably cheaper than "Entire Homes."
-The number of reviews has a slight negative effect on price, suggesting that older or more popular listings tend to be slightly less expensive.
-Overall, these variables explain approximately 45% of the log-transformed price variation, making this a simple yet relevant model for an initial analysis of pricing factors.
+The model shows that Airbnb prices in New York City vary significantly depending on the neighborhood and type of accommodation. Locations in Manhattan and Brooklyn are, on average, much more expensive than those in the Bronx. Conversely, "Private Rooms" and "Shared Rooms" are considerably cheaper than "Entire Homes." The number of reviews has a slight negative effect on price, suggesting that older or more popular listings tend to be slightly less expensive. Overall, these variables explain approximately 45% of the log-transformed price variation, making this a simple yet relevant model for an initial analysis of pricing factors.
